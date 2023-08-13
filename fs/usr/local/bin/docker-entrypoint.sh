@@ -29,6 +29,7 @@ sudo mkdir /run/sshd
 
 if [[ -n ${SSH-KEY} ]]; then
   sudo echo "${SSH-KEY}" > /home/vscode/.ssh/authorized_keys
+  sudo cat /home/vscode/.ssh/authorized_keys.d/* >> /home/vscode/.ssh/authorized_keys
   sudo chown vscode:vscode /home/vscode/.ssh/authorized_keys
   sudo chmod 600 /home/vscode/.ssh/authorized_keys
 fi
