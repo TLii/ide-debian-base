@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
 
+# Run additional entrypoint scripts for runlevel 1, if any exist.
+if [[ -d /usr/local/bin/entrypoint.d.1 ]]; then
+  chmod +x /usr/local/bin/entrypoint.d.1/*.sh
+  for f in /usr/local/bin/entrypoint.d.1/*.sh; do
+    echo "Running $f"
+    sudo $f
+  done
+fi
+
+# Run any custom startup scripts in userspace
+if [[ -f $PWD/setup.sh ]]; then
+  chmod +x $PWD/setup.sh
+  $PWD/start.sh
+fi
+
 sudo ssh-keygen -A
 
 if [[ -n ${PASSWORD} ]]; then
@@ -18,10 +33,28 @@ if [[ -n ${SSH-KEY} ]]; then
   sudo chmod 600 /home/vscode/.ssh/authorized_keys
 fi
 
-# Run any custom startup scripts
+# Run additional entrypoint scripts for runlevel 8, if any exist.
+if [[ -d /usr/local/bin/entrypoint.d.8 ]]; then
+  chmod +x /usr/local/bin/entrypoint.d.8/*.sh
+  for f in /usr/local/bin/entrypoint.d.8/*.sh; do
+    echo "Running $f"
+    sudo $f
+  done
+fi
+
+# Run any custom startup scripts in userspace
 if [[ -f $PWD/start.sh ]]; then
   chmod +x $PWD/start.sh
   $PWD/start.sh
+fi
+
+# Run additional entrypoint scripts for runlevel 9, if any exist.
+if [[ -d /usr/local/bin/entrypoint.d.9 ]]; then
+  chmod +x /usr/local/bin/entrypoint.d.9/*.sh
+  for f in /usr/local/bin/entrypoint.d.9/*.sh; do
+    echo "Running $f"
+    sudo $f
+  done
 fi
 
 # Run the command passed to the container
