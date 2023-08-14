@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
       unzip \
       lsb-release \
       sudo \
-      coreutils
+      coreutils \
+      bash-completion
 
 COPY fs /
 
