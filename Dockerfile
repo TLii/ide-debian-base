@@ -22,8 +22,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 COPY fs /
 
-RUN chown 1000 /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh
+# Setup container environment
+RUN chown 1000 /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh; \
+    cat /usr/local/lib/apply_bash_completion >> /etc/bash.bashrc
 
+# Setup .ssh
 RUN usermod -aG sudo,vscode vscode && \
     mkdir -p /home/vscode/.ssh && \
     chown -R vscode:vscode /home/vscode/.ssh && \
