@@ -11,7 +11,7 @@ on:
 
 env:
   cidata: .ci
-  appname: debian-base
+  appname: debian-ide-base
   branch: ${{ github.ref_name }}
 
 jobs:
