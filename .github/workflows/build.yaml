@@ -86,7 +86,7 @@ jobs:
         addLatest: ${{ env.addlatest }}
 
     - name: Push changed version commit
-      if: ${{ github.push == 'true' }}
+      if: ${{ env.push == 'true' }}
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
