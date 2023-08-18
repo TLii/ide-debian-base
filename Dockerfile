@@ -33,7 +33,7 @@ RUN usermod -aG sudo,vscode vscode && \
     chmod 700 /home/vscode/.ssh && \
     echo "vscode ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-VOLUME /home/vscode
+VOLUME ["/home/vscode", "/usr/local/etc/ssh"]
 
 WORKDIR /home/vscode
 USER 1000:1000

@@ -19,8 +19,9 @@ Not yet.
 - You can provide a single ssh key through the environment variable `SSH-KEY`, if it happens to contain no illegal characters.
 
 ### Special mount locations
-- `/home/vscode/.ssh/authorized_keys.d` Every file under this directory ending in .key will be included in .ssh/authorized_keys.
-- `/home/vscode` The home directory is persisted.
+- `/home/vscode/.ssh/authorized_keys.d`: Every file under this directory ending in .key will be included in .ssh/authorized_keys.
+- `/home/vscode`: The home directory is persisted.
+- `/usr/local/etc/ssh`: The location of ssh(d) configuration. This is persisted to maintain ssh keys over instances.
 
 ### Custom scripting
 You can add scripts to be run at container startup. `/home/vscode/setup.sh` is executed in the beginning of entrypoint, right after runlevel 1. `/home/vscode/start.sh` is executed at the end, right before final entrypoint scripting and the command passed to the container. You can use sudo to run commands with higher privileges.

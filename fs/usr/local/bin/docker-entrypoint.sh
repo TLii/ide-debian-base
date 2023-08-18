@@ -42,8 +42,17 @@
 ## RUNLEVEL 4 ##
 
   # Setup sshd
-  sudo ssh-keygen -A
-  sudo mkdir /run/sshd
+  if [[ -d /usr/local/etc/ssh ]] && [[ "$( ls -A /usr/local/etc/ssh" ) ]]; then
+    rm -r /etc/ssh
+    ln -s /usr/local/etc/ssh /etc/ssh
+  else
+    mkdir -p /usr/local/etc/ssh
+    sudo ssh-keygen -A
+    mv /etc/ssh/* /usr/local/etc/ssh/
+    rm -r /etc/ssh
+    ln -s /usr/local/etc/ssh /etc/ssh
+  fi
+  [[ -d /run/sshd ]] || sudo mkdir /run/sshd
 
   # Custom RL4 scripts, if any exist.
   if [[ -d /usr/local/bin/entrypoint.d.4 ]]; then
