@@ -36,6 +36,6 @@ RUN usermod -aG sudo,vscode vscode && \
 VOLUME /home/vscode
 
 WORKDIR /home/vscode
-USER 1000
+USER 1000:1000
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["sudo", "/usr/sbin/sshd","-D", "-e"]
