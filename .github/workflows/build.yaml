@@ -51,7 +51,6 @@ jobs:
       run: |
         git config --local user.email "github-actions@github.com"
         git config --local user.name "github-actions"
-        git commit -am "chore(Version bump)"
         changes="$(git status --porcelain)"
         if [[ -z $changes ]]; then
           # If no files were changed, there's nothing to push.
