@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+
+  # Build authorized-keys file for vscode user
+  [[ -f /home/vscode/.ssh/authorized_keys ]] && rm /home/vscode/.ssh/authorized_keys
+
+  if [[ -n ${SSH-KEY} ]]; then
+    echo "${SSH-KEY}" > /home/vscode/.ssh/authorized_keys
+  fi
+
+  if [[ -d /home/vscode/.ssh/authorized_keys.d ]]; then
+    for key in /home/vscode/.ssh/authorized_keys.d/*.key; do
+      cat "$key" >> /home/vscode/.ssh/authorized_keys
+    done
+  fi
+
+  if [[ -d /home/vscode/.ssh/authorized_keys.user.d ]]; then
+    for key in /home/vscode/.ssh/authorized_keys.user.d/*; do
+      cat "$key" >> /home/vscode/.ssh/authorized_keys
+    done
+  fi
+
+  # Set permissions on authorized_keys file
+  sudo chown vscode:vscode /home/vscode/.ssh/authorized_keys
+  sudo chmod 600 /home/vscode/.ssh/authorized_keys
