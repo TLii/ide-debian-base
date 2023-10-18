@@ -15,7 +15,7 @@ You can use this container either locally as you please or remotely through SSH.
 Not yet.
 
 ### Environment variables
-- `$PASSWORD` sets the login password for the `vscode`user (this cannot be changed).
+- `$IDE_PASSWORD` sets the login password for the created user. User name, however is set during image build and shouldn't be changed any more; the default is `vscode`.
 - You can provide a single ssh key through the environment variable `SSH-KEY`, if it happens to contain no illegal characters.
 
 ### Special mount locations
