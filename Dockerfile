@@ -34,9 +34,9 @@ RUN chown $IDE_UID /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bi
 # Setup .ssh
 RUN groupadd -g $IDE_GID $IDE_USERNAME; \
     useradd -d /home/$IDE_USERNAME -m -N -g $IDE_USERNAME -u $IDE_UID -G sudo $IDE_USERNAME -s /bin/bash; \
-    mkdir -p /home/$IDE_USERNAME/.ssh; && \
-    chown -R $IDE_USERNAME:$IDE_USERNAME /home/$IDE_USERNAME/.ssh; && \
-    chmod 700 /home/$IDE_USERNAME/.ssh; && \
+    mkdir -p /home/$IDE_USERNAME/.ssh;  \
+    chown -R $IDE_USERNAME:$IDE_USERNAME /home/$IDE_USERNAME/.ssh;  \
+    chmod 700 /home/$IDE_USERNAME/.ssh; \
     echo "$IDE_USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers;
 
 VOLUME ["/home/$IDE_USERNAME", "/usr/local/etc/ssh"]
