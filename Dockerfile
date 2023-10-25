@@ -6,8 +6,8 @@ LABEL description="Base container for remote IDEs. Sets up and exposes a basic S
 EXPOSE 22
 
 ENV IDE_USERNAME=vscode
-ENV IDE_GID=1000
-ENV IDE_UID=1000
+ENV IDE_GID=1001
+ENV IDE_UID=1001
 
 ## FUNDAMENTALS ##
 # Install base system
