@@ -8,6 +8,7 @@ EXPOSE 22
 ENV IDE_USERNAME=vscode
 ENV IDE_GID=1001
 ENV IDE_UID=1001
+ENV IDE_HOMEDIR=/home/vscode
 
 ## FUNDAMENTALS ##
 # Install base system
@@ -33,15 +34,16 @@ RUN chown $IDE_UID /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bi
 
 # Setup .ssh
 RUN groupadd -g $IDE_GID $IDE_USERNAME; \
-    useradd -d /home/$IDE_USERNAME -m -N -g $IDE_USERNAME -u $IDE_UID -G sudo $IDE_USERNAME -s /bin/bash; \
-    mkdir -p /home/$IDE_USERNAME/.ssh;  \
-    chown -R $IDE_USERNAME:$IDE_USERNAME /home/$IDE_USERNAME/.ssh;  \
-    chmod 700 /home/$IDE_USERNAME/.ssh; \
+    useradd -d $IDE_HOMEDIR -m -N -g $IDE_USERNAME -u $IDE_UID -G sudo $IDE_USERNAME -s /bin/bash; \
+    mkdir -p $IDE_HOMEDIR/.ssh;  \
+    chown -R $IDE_USERNAME:$IDE_USERNAME $IDE_HOMEDIR/.ssh;  \
+    chmod 700 $IDE_HOMEDIR/.ssh; \
     echo "$IDE_USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers;
 
-VOLUME ["/home/$IDE_USERNAME", "/usr/local/etc/ssh"]
+VOLUME ["$IDE_USERNAME", "/usr/local/etc/ssh"]
 
-WORKDIR /home/$IDE_USERNAME
+WORKDIR $IDE_USERNAME
 USER $IDE_UID:$IDE_GID
+
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["sudo", "/usr/sbin/sshd","-D", "-e"]
