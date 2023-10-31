@@ -4,8 +4,9 @@
   # Build authorized-keys file for vscode user
   [[ -f /home/vscode/.ssh/authorized_keys ]] && rm /home/vscode/.ssh/authorized_keys
 
-  if [[ -n ${SSH-KEY} ]]; then
-    echo "${SSH-KEY}" > /home/vscode/.ssh/authorized_keys
+  if [[ -n $(echo $SSH_KEY) ]]; then
+    SSH-KEY=$(echo $SSH_KEY | base64 --decode)
+    echo "$SSH-KEY" > /home/vscode/.ssh/authorized_keys
   fi
 
   if [[ -d /home/vscode/.ssh/authorized_keys.d ]]; then
