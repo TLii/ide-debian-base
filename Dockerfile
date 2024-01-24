@@ -1,7 +1,7 @@
-# This image is used to run PHP IDEs (e.g. PhpStorm) in a containerized environment.
-# Included: PHP, Composer, Helm, Docker CLI, SSH server, xdebug, phpunit
+# Base image for remote IDE based on Debian.
+ARG DEBIAN_VERSION="bookworm-slim"
 
-FROM debian
+FROM debian:$DEBIAN_VERSION
 LABEL description="Base container for remote IDEs. Sets up and exposes a basic SSH server reachable with IDE_USERNAME vscode (unless you change it)"
 EXPOSE 22
 
