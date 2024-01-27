@@ -29,7 +29,7 @@ fi
       if [[ ! $IAMROOT ]]; then
         sudo "$f"
       else
-        "$f"
+        exec "$f"
       fi
     done
   fi
