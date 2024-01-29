@@ -24,7 +24,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         lsb-release \
         sudo \
         coreutils \
-        bash-completion
+        bash-completion \
+    && rm -rf /var/lib/apt/lists/*
+
 
 COPY fs /
 
