@@ -24,9 +24,46 @@ on:
 env:
   cidata: .ci
   appname: remote-debian-base
-  branch: ${{ github.ref_name }}
+  dockerfile: Dockerfile
 
 jobs:
+
+  release:
+
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      last_version: ${{ steps.last_versions.outputs.last_version }}
+      last_hash: ${{ steps.last_versions.outputs.last_hash }}
+      new_version: ${{ steps.new_version.outputs.new_version }}
+
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.branch }}
+
+    - name: Determine last version details
+      id: last_versions
+      run: |
+        last_version=$(cat ${{ env.cidata }}/release_version.txt)
+        last_hash=$(cat ${{ env.cidata }}/release_hash.txt)
+        echo "last_version=$last_version" >> "$GITHUB_OUTPUT"
+        echo "last_hash=$last_hash" >> "$GITHUB_OUTPUT"
+
+    - name: Determine new version
+      id: new_version
+      uses: TLii/workflows/.github/workflows/versioning.yml@master
+      with:
+        last_build_head: ${{ steps.last_versions.outputs.last_hash }}
+        current_version: ${{ steps.last_versions.outputs.last_version }}
+        use_build_numbers: false
+
 
   build:
     runs-on: ubuntu-latest
@@ -36,54 +73,23 @@ jobs:
     - name: Code checkout
       uses: actions/checkout@v3
 
-    - name: Write version information
-      run: |
-        # Ensure ${{ env.cidata }} exists
-        [[ ! -d ${{ env.cidata }} ]] && mkdir -p ${{ env.cidata }}
-
-        if [[ -f ${{ env.cidata }}/version_number ]]; then
-          version_number=$(cat "${{ env.cidata }}/version_number.txt")+1
-          echo "Version number found. Incrementing."
-          echo "Current version is $version_number"
-        else
-          version_number=1
-          echo "No version number found. Starting at 1."
-        fi
-
-        echo $version_number > ${{ env.cidata }}/version_number.txt
-        echo "Writing $version_number to ${{ env.cidata }}/version_number.txt"
-        echo "Current version recorded."
-        github_hash=$(git rev-parse --short "${{ github.sha }}")
-        echo "github_hash=$github_hash" >> "$GITHUB_ENV"
-        echo "version_number=$version_number" >> "$GITHUB_ENV"
-
-
-    - name: Commit changed version number and changed ci values
-      id: commit
-      run: |
-        git config --local user.email "github-actions@github.com"
-        git config --local user.name "github-actions"
-        changes="$(git status --porcelain)"
-        if [[ -z $changes ]]; then
-          # If no files were changed, there's nothing to push.
-          echo "push=false" >> "$GITHUB_ENV"
-        else
-          # If files were changed, record the change.
-          git commit -m "Automatic version update" -a
-          echo "push=true" >> "$GITHUB_ENV"
-        fi
-      shell: bash
-
     - name: Determine tags
       run: |
-        if [[ ${{ env.branch }} == 'master' ]]; then
-          tags="latest, ${{ env.branch }}-latest, ${{ env.branch }}, ${{ env.version_number }}, ${{ env.github_hash }}, ${{ github.sha }}"
+
+        new_version=${{ steps.release.outputs.new_version }}
+        branch=${{ inputs.branch }}
+        is_release=${{ inputs.is_release }}
+        is_scheduled=${{ inputs.is_scheduled }}
+
+        tags="$branch-latest, $branch, $new_version, ${{ env.github_hash }}, ${{ github.sha }}
+
+        if [[ ${{ env.branch }} == 'master' ]]); then
+          tags+="latest"
           addlatest="true"
         else
-          tags="${{ env.branch }}-latest, ${{ env.branch }}, ${{ env.version_number }}, ${{ env.github_hash }}, ${{ github.sha }}"
           addlatest="false"
         fi
-        echo "tags=$tags" >> "$GITHUB_ENV"
+        echo "tags=$(echo "$tags"|sed 's/[, ]*$//g')" >> "$GITHUB_ENV"
         echo "addlatest=$addlatest" >> "$GITHUB_ENV"
 
     - name: Build and push container image
@@ -92,12 +98,35 @@ jobs:
         image: remote-ide/${{ env.appname }}
         tags: ${{ env.tags }}
         registry: ${{ secrets.REGISTRY_URL }}
-        dockerfile: Dockerfile
+        dockerfile: ${{ env.dockerfile }}
         username: ${{ secrets.REGISTRY_USER }} # optional
         password: ${{ secrets.REGISTRY_PASSWORD }} # optional
         addLatest: ${{ env.addlatest }}
 
+    - name: Record new version
+      run: |
+        echo "${{ steps.new_version.outputs.new_version }}" > ${{ env.cidata }}/release_version.txt
+        echo "${{ github.sha }}" > ${{ env.cidata }}/release_hash.txt
+
+    - name: Commit changed version number and changed ci values
+      id: commit
+      run: |
+        git config --local user.email "github-actions@github.com"
+        git config --local user.name "github-actions"
+        git add .
+        if [[ -z "$(git status --porcelain)" ]]; then
+          # If no files were changed, there's nothing to push.
+          echo "push_needed=false" >> "$GITHUB_OUTPUT"
+        else
+          # If files were changed, record the change.
+          git commit -m "chore: Automatic version update" -a
+          echo "push_needed=true" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
     - name: Push changed version commit
+      if: ${{ steps.commit.outputs.push_needed == 'true' }}
+      id: push
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
