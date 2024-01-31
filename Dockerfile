@@ -5,10 +5,10 @@ FROM debian:$DEBIAN_VERSION
 LABEL description="Base container for remote IDEs. Sets up and exposes a basic SSH server reachable with IDE_USERNAME vscode (unless you change it)"
 EXPOSE 22
 
-ENV IDE_USERNAME=vscode
-ENV IDE_GID=1001
-ENV IDE_UID=1001
-ENV IDE_HOMEDIR=/home/vscode
+ENV IDE_USERNAME=vscode \
+    IDE_GID=1001 \
+    IDE_UID=1001 \
+    IDE_HOMEDIR=/home/vscode
 
 ## FUNDAMENTALS ##
 # Install base system
@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/*
 
 
-COPY fs /
+COPY --chown=$IDE_USERNAME fs /
 
 # Setup container environment
 RUN chown $IDE_UID /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh; \
@@ -36,7 +36,7 @@ RUN chown $IDE_UID /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bi
 
 # Setup .ssh
 RUN groupadd -g $IDE_GID $IDE_USERNAME; \
-    useradd -d $IDE_HOMEDIR -m -N -g $IDE_USERNAME -u $IDE_UID -G sudo $IDE_USERNAME -s /bin/bash; \
+    useradd -l -d $IDE_HOMEDIR -m -N -g $IDE_USERNAME -u $IDE_UID -G sudo $IDE_USERNAME -s /bin/bash; \
     mkdir -p $IDE_HOMEDIR/.ssh;  \
     chown -R $IDE_USERNAME:$IDE_USERNAME $IDE_HOMEDIR/.ssh;  \
     chmod 700 $IDE_HOMEDIR/.ssh; \
