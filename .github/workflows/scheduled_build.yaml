@@ -1,0 +1,16 @@
+name: Scheduled Build
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+
+jobs:
+
+  builder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: ./.github/workflows/build.yaml@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          is_scheduled: true
