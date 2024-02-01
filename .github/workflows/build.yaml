@@ -23,18 +23,15 @@ env:
 
 jobs:
 
-  release:
+  setup:
 
-    permissions:
-      contents: write
+    name: Setup workflow
 
     runs-on: ubuntu-latest
 
     outputs:
       last_version: ${{ steps.last_versions.outputs.last_version }}
       last_hash: ${{ steps.last_versions.outputs.last_hash }}
-      new_version: ${{ steps.new_version.outputs.new_version }}
-
 
     steps:
 
@@ -51,17 +48,22 @@ jobs:
         echo "last_version=$last_version" >> "$GITHUB_OUTPUT"
         echo "last_hash=$last_hash" >> "$GITHUB_OUTPUT"
 
-    - name: Determine new version
-      id: new_version
-      uses: TLii/workflows/.github/workflows/versioning.yml@master
-      with:
-        last_build_head: ${{ steps.last_versions.outputs.last_hash }}
-        current_version: ${{ steps.last_versions.outputs.last_version }}
-        use_build_numbers: false
-
+  version:
+    name: Determine new version string
+    needs: setup
+    uses: TLii/workflows/.github/workflows/versioning.yml@master
+    if: ${{ inputs.is_scheduled == 'false' }}
+    with:
+      last_build_head: ${{ needs.setup.outputs.last_hash }}
+      current_version: ${{ needs.setup.outputs.last_version }}
+      use_build_numbers: false
 
   build:
+    name: Build and push container image
+
     runs-on: ubuntu-latest
+
+    needs: [setup, version]
 
     steps:
 
@@ -73,7 +75,6 @@ jobs:
 
         new_version=${{ steps.release.outputs.new_version }}
         branch=${{ inputs.branch }}
-        is_release=${{ inputs.is_release }}
         is_scheduled=${{ inputs.is_scheduled }}
 
         tags="$branch-latest, $branch, $new_version, ${{ env.github_hash }}, ${{ github.sha }}
@@ -99,11 +100,31 @@ jobs:
         addLatest: ${{ env.addlatest }}
 
     - name: Record new version
+      if: ${{ inputs.is_scheduled == 'false' }}
       run: |
         echo "${{ steps.new_version.outputs.new_version }}" > ${{ env.cidata }}/release_version.txt
         echo "${{ github.sha }}" > ${{ env.cidata }}/release_hash.txt
 
+    - name: Build Changelog
+      uses: TriPSs/conventional-changelog-action@v3
+      if: ${{ inputs.is_scheduled == 'false' }}
+      id: changelog
+      with:
+        github-token: ${{ secrets.github_token }}
+        preset: conventionalcommits
+        git-user-name: github-actions
+        git-push: false
+        git-message: 'chore: update changelog'
+        git-branch: ${{ inputs.branch }}
+        output-file: CHANGELOG.md
+        release-count: 0
+        skip-version-file: true
+        skip-commit: true
+        skip-tag: true
+
+
     - name: Commit changed version number and changed ci values
+      if: ${{ inputs.is_scheduled == 'false' }}
       id: commit
       run: |
         git config --local user.email "github-actions@github.com"
@@ -120,8 +141,20 @@ jobs:
       shell: bash
 
     - name: Push changed version commit
-      if: ${{ steps.commit.outputs.push_needed == 'true' }}
+      if: ${{ steps.commit.outputs.push_needed == 'true' }} && ${{ inputs.is_scheduled == 'false' }}
       id: push
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Release
+      if: ${{ steps.commit.outputs.push_needed == 'true' }} && ${{ inputs.is_scheduled == 'false' }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ needs.version.outputs.new_version }}
+        release_name: v${{ needs.version.outputs.new_version }}
+        body: ${{ steps.changelog.outputs.changelog }}x§
+        draft: false
+        prerelease: false
