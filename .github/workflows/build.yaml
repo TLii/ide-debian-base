@@ -8,7 +8,7 @@ on:
       branch:
         description: 'Branch to build'
         required: true
-        default: github.ref_name
+        default: ${{ github.ref_name }}
         type: string
       is_scheduled:
         description: 'Is this a scheduled build?'
