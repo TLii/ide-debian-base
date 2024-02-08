@@ -1,4 +1,4 @@
-name: Scheduled Build
+name: Triggered build
 
 on:
   push:
