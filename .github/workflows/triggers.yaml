@@ -17,13 +17,16 @@ jobs:
 
     steps:
 
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - uses: ./.github/workflows/build.yaml@master
         if: github.event_name == 'push'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           is_release: true
 
-      - uses: ./.githuQb/workflows/build.yaml@master
+      - uses: ./.github/workflows/build.yaml@master
         if: github.event_name == 'pull_request'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
