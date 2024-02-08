@@ -16,11 +16,7 @@ fi
 
     for f in /usr/local/bin/entrypoint.d/*.sh; do
       echo "Running $f"
-      if [[ ! $IAMROOT ]]; then
-        sudo "$f"
-      else
-        exec "$f"
-      fi
+        "$f"
     done
   fi
 
